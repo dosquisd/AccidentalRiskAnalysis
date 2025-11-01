@@ -1,6 +1,6 @@
 import streamlit as st
 
-from dashboard.data import data_overview
+from dashboard.data import data_index
 from dashboard.lineplots import lineplot_index
 
 
@@ -22,7 +22,7 @@ def introduction() -> None:
 if __name__ == "__main__":
     index_pages = {
         "Introduction": introduction,
-        "Data Overview": data_overview,
+        "Data Overview": data_index,
         "Line Plots": lineplot_index,
     }
 
