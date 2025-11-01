@@ -1,15 +1,19 @@
-import pandas as pd
-import geopandas as gpd
 from typing import Union
+
+import geopandas as gpd
+import pandas as pd
+
 from utils.constants import RAW_DATA_DIR
 
-
 original_data_file = (
-    RAW_DATA_DIR / "accidente-de-trafico-en-bogota-entre-2007-y-2017-geopoint.csv"
+    RAW_DATA_DIR
+    / "accidente-de-trafico-en-bogota-entre-2007-y-2017-geopoint.csv"
 )
 
 
-def load_raw_data(as_geopandas: bool = False) -> Union[pd.DataFrame, gpd.GeoDataFrame]:
+def load_raw_data(
+    as_geopandas: bool = False,
+) -> Union[pd.DataFrame, gpd.GeoDataFrame]:
     """
     Loads the raw traffic accident data from a CSV file.
 

@@ -1,6 +1,7 @@
-import pandas as pd
 import geopandas as gpd
-from utils.constants import PROCESSED_DATA_DIR, DAY_OF_WEEK_MAP
+import pandas as pd
+
+from utils.constants import DAY_OF_WEEK_MAP, PROCESSED_DATA_DIR
 
 
 def load_processed_original_data(
@@ -62,7 +63,9 @@ def resample_data(
         raise ValueError("The DataFrame index must be of datetime type.")
 
     # Map day of week numbers to names
-    df["DIA_SEMANA_OCURRENCIA"] = df["DIA_SEMANA_OCURRENCIA"].map(DAY_OF_WEEK_MAP)
+    df["DIA_SEMANA_OCURRENCIA"] = df["DIA_SEMANA_OCURRENCIA"].map(
+        DAY_OF_WEEK_MAP
+    )
 
     # Resample and aggregate
     resampled_df = df.resample(freq).agg(

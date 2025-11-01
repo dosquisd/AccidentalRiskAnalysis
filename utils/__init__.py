@@ -1,6 +1,5 @@
-from utils import load_data, constants
+from utils import constants, load_data
 from utils.configure_scienceplots import configure_scienceplots
-
 
 __all__ = [
     "load_data",
