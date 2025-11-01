@@ -1,9 +1,9 @@
 import warnings
-from datetime import date
 
 import pandas as pd
 import streamlit as st
 
+from dashboard.custom_utils import filter_data_by_date_range
 from utils.load_data import load_processed_original_data, resample_data
 
 warnings.filterwarnings("ignore")
@@ -194,32 +194,6 @@ def lineplots(
         resample_freq_units=resample_freq_units,
         separate_charts=separate_charts,
     )
-
-
-def filter_data_by_date_range(
-    df: pd.DataFrame, start_date: date, end_date: date
-) -> pd.DataFrame:
-    """Filters the DataFrame by the selected date range."""
-    start_datetime = pd.to_datetime(start_date)
-    end_datetime = pd.to_datetime(end_date)
-
-    # Filter the DataFrame
-    if (
-        df.index.name == "FECHA_OCURRENCIA"
-        or "FECHA_OCURRENCIA" in df.index.names
-    ):
-        # If the date is in the index
-        mask = (df.index >= start_datetime) & (df.index <= end_datetime)
-        return df.loc[mask]
-    else:
-        # If the date is in a column
-        if "FECHA_OCURRENCIA" in df.columns:
-            mask = (df["FECHA_OCURRENCIA"] >= start_datetime) & (
-                df["FECHA_OCURRENCIA"] <= end_datetime
-            )
-            return df.loc[mask]
-
-    return df
 
 
 def lineplot_index(title: str = "LinePlots") -> None:
