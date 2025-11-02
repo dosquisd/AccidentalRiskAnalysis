@@ -5,6 +5,9 @@ from dashboard.data import index as data_index
 from dashboard.heatmaps import index as heatmaps_index
 from dashboard.lineplots import index as lineplot_index
 from dashboard.localities import index as localities_index
+from utils import configure_scienceplots
+
+configure_scienceplots()
 
 
 def introduction() -> None:
