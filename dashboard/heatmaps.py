@@ -3,7 +3,7 @@ import pandas as pd
 import seaborn as sns
 import streamlit as st
 
-from dashboard.custom_utils import filter_data_by_date_range
+from dashboard.custom_utils import filter_data_by_date_range, select_dates
 from utils.load_data import load_processed_original_data, resample_data
 
 
@@ -184,47 +184,14 @@ def index(title: str = "Heat Maps") -> None:
         processed_data = st.session_state.heatmap_cached_processed_data
         print("Using cached processed data")
 
-    # Get the available date range in the data
-    min_date = processed_data.index.min().date()
-    max_date = processed_data.index.max().date()
+    start_date, end_date = select_dates(
+        processed_data,
+        key_prefix="heatmap",
+        show_total_days=True,
+    ) or (None, None)
 
-    # Create columns for date controls
-    col1, col2 = st.columns(2)
-
-    with col1:
-        start_date = st.date_input(
-            label="Start Date:",
-            value=min_date,
-            min_value=min_date,
-            max_value=max_date,
-            key="start_date_input",
-            on_change=lambda: st.session_state.update(
-                {"heatmap_date_filter_changed": True}
-            ),
-        )
-
-    with col2:
-        end_date = st.date_input(
-            label="End Date:",
-            value=max_date,
-            min_value=min_date,
-            max_value=max_date,
-            key="end_date_input",
-            on_change=lambda: st.session_state.update(
-                {"heatmap_date_filter_changed": True}
-            ),
-        )
-
-    # Validate that the start date is earlier than the end date
-    if start_date > end_date:
-        st.error("⚠️ The start date must be earlier than the end date.")
+    if start_date is None or end_date is None:
         return
-
-    # Show information about the selected range
-    days_selected = (end_date - start_date).days + 1
-    st.info(
-        f"📅 Selected range: **{days_selected} days** ({start_date} to {end_date})"
-    )
 
     frequency_options = {
         "Daily": "1D",

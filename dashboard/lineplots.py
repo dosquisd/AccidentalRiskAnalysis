@@ -3,7 +3,7 @@ import warnings
 import pandas as pd
 import streamlit as st
 
-from dashboard.custom_utils import filter_data_by_date_range
+from dashboard.custom_utils import filter_data_by_date_range, select_dates
 from utils.load_data import load_processed_original_data, resample_data
 
 warnings.filterwarnings("ignore")
@@ -24,15 +24,15 @@ def show_all_historic_data(
 
     if ewm_alpha > 0.0:
         if (
-            st.session_state.last_ewm_alpha_slider != ewm_alpha
-            or st.session_state.ewm_alpha_calcs is None
+            st.session_state.lineplots_last_ewm_alpha_slider != ewm_alpha
+            or st.session_state.lineplots_ewm_alpha_calcs is None
         ):
             tmp_df["ewm"] = tmp_df[y_axis].ewm(alpha=ewm_alpha).mean()
-            st.session_state.last_ewm_alpha_slider = ewm_alpha
-            st.session_state.ewm_alpha_calcs = tmp_df["ewm"].copy()
+            st.session_state.lineplots_last_ewm_alpha_slider = ewm_alpha
+            st.session_state.lineplots_ewm_alpha_calcs = tmp_df["ewm"].copy()
             print(f"Calculating EWM with alpha={ewm_alpha}")
         else:
-            tmp_df["ewm"] = st.session_state.ewm_alpha_calcs
+            tmp_df["ewm"] = st.session_state.lineplots_ewm_alpha_calcs
             print(f"Using cached EWM with alpha={ewm_alpha}")
 
         y_axis = [accidents_col, "ewm"]
@@ -128,7 +128,7 @@ def lineplots(
         value=0.0,
         step=0.01,
         key="ewm_alpha_slider",
-        on_change=lambda: st.session_state.update({"ewm_alpha_calcs": None}),
+        on_change=lambda: st.session_state.update({"lineplots_ewm_alpha_calcs": None}),
     )
 
     # Total accidents chart
@@ -203,82 +203,49 @@ def index(title: str = "LinePlots") -> None:
     """)
 
     # Initialize session state
-    if "processed_data_needs_update" not in st.session_state:
-        st.session_state.processed_data_needs_update = True
-    if "cached_processed_data" not in st.session_state:
-        st.session_state.cached_processed_data = None
-    if "resampled_data_needs_update" not in st.session_state:
-        st.session_state.resampled_data_needs_update = True
-    if "cached_resampled_data" not in st.session_state:
-        st.session_state.cached_resampled_data = None
-    if "date_filter_changed" not in st.session_state:
-        st.session_state.date_filter_changed = True
-    if "last_ewm_alpha_slider" not in st.session_state:
-        st.session_state.last_ewm_alpha_slider = 0.0
-    if "ewm_alpha_calcs" not in st.session_state:
-        st.session_state.ewm_alpha_calcs = None
+    if "lineplots_processed_data_needs_update" not in st.session_state:
+        st.session_state.lineplots_processed_data_needs_update = True
+    if "lineplots_cached_processed_data" not in st.session_state:
+        st.session_state.lineplots_cached_processed_data = None
+    if "lineplots_resampled_data_needs_update" not in st.session_state:
+        st.session_state.lineplots_resampled_data_needs_update = True
+    if "lineplots_cached_resampled_data" not in st.session_state:
+        st.session_state.lineplots_cached_resampled_data = None
+    if "lineplots_date_filter_changed" not in st.session_state:
+        st.session_state.lineplots_date_filter_changed = True
+    if "lineplots_last_ewm_alpha_slider" not in st.session_state:
+        st.session_state.lineplots_last_ewm_alpha_slider = 0.0
+    if "lineplots_ewm_alpha_calcs" not in st.session_state:
+        st.session_state.lineplots_ewm_alpha_calcs = None
 
     if (
-        st.session_state.processed_data_needs_update
-        or st.session_state.cached_processed_data is None
+        st.session_state.lineplots_processed_data_needs_update
+        or st.session_state.lineplots_cached_processed_data is None
     ):
         processed_data = load_processed_original_data(
             as_geopandas=False,
             date_as_index=True,
             parse_dates=True,
         )
-        st.session_state.cached_processed_data = processed_data
-        st.session_state.processed_data_needs_update = False
+        st.session_state.lineplots_cached_processed_data = processed_data
+        st.session_state.lineplots_processed_data_needs_update = False
 
         # Force EWM recalculation
-        st.session_state.last_ewm_alpha_slider = 0.0
-        st.session_state.ewm_alpha_calcs = None
+        st.session_state.lineplots_last_ewm_alpha_slider = 0.0
+        st.session_state.lineplots_ewm_alpha_calcs = None
         print("Recalculating processed data")
     else:
-        processed_data = st.session_state.cached_processed_data
+        processed_data = st.session_state.lineplots_cached_processed_data
         print("Using cached processed data")
 
-    # Get the available date range in the data
-    min_date = processed_data.index.min().date()
-    max_date = processed_data.index.max().date()
+    start_date, end_date = select_dates(
+        processed_data,
+        key_prefix="lineplots",
+        show_total_days=True,
+    ) or (None, None)
 
-    # Create columns for date controls
-    col1, col2 = st.columns(2)
-
-    with col1:
-        start_date = st.date_input(
-            label="Start Date:",
-            value=min_date,
-            min_value=min_date,
-            max_value=max_date,
-            key="start_date_input",
-            on_change=lambda: st.session_state.update(
-                {"date_filter_changed": True}
-            ),
-        )
-
-    with col2:
-        end_date = st.date_input(
-            label="End Date:",
-            value=max_date,
-            min_value=min_date,
-            max_value=max_date,
-            key="end_date_input",
-            on_change=lambda: st.session_state.update(
-                {"date_filter_changed": True}
-            ),
-        )
-
-    # Validate that the start date is earlier than the end date
-    if start_date > end_date:
-        st.error("⚠️ The start date must be earlier than the end date.")
+    if start_date is None or end_date is None:
         return
-
-    # Show information about the selected range
-    days_selected = (end_date - start_date).days + 1
-    st.info(
-        f"📅 Selected range: **{days_selected} days** ({start_date} to {end_date})"
-    )
 
     frequency_options = {
         "Daily": "1D",
@@ -296,15 +263,15 @@ def index(title: str = "LinePlots") -> None:
         index=1,
         key="resample_frequency_selectbox",
         on_change=lambda: st.session_state.update(
-            {"resampled_data_needs_update": True}
+            {"lineplots_resampled_data_needs_update": True}
         ),
     )
 
     # Use cached data to avoid unnecessary recomputation
     if (
-        st.session_state.resampled_data_needs_update
-        or st.session_state.date_filter_changed
-        or st.session_state.cached_resampled_data is None
+        st.session_state.lineplots_resampled_data_needs_update
+        or st.session_state.lineplots_date_filter_changed
+        or st.session_state.lineplots_cached_resampled_data is None
     ):
         # First filter by dates
         filtered_data = filter_data_by_date_range(
@@ -318,15 +285,15 @@ def index(title: str = "LinePlots") -> None:
             multi_index=False,
         )
 
-        st.session_state.cached_resampled_data = resampled_data
-        st.session_state.resampled_data_needs_update = False
-        st.session_state.date_filter_changed = False
+        st.session_state.lineplots_cached_resampled_data = resampled_data
+        st.session_state.lineplots_resampled_data_needs_update = False
+        st.session_state.lineplots_date_filter_changed = False
 
         print(
             f"Recalculating data: {selected_frequency}, {start_date} to {end_date}"
         )
     else:
-        resampled_data = st.session_state.cached_resampled_data
+        resampled_data = st.session_state.lineplots_cached_resampled_data
         print(f"Using cached data: {selected_frequency}")
 
     # Check if there is data in the selected range
