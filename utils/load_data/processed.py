@@ -44,6 +44,7 @@ def resample_data(
     df: pd.DataFrame = None,
     freq: str = "1W",
     multi_index: bool = False,
+    day_of_week_map: dict[int, str] = None,
 ) -> pd.DataFrame:
     """
     Resamples the traffic accident data to a specified frequency, aggregating counts and categories.
@@ -52,10 +53,14 @@ def resample_data(
         df (pd.DataFrame): The DataFrame to resample. If None, loads the default processed data.
         freq (str): The resampling frequency (e.g., '1D' for daily, '1W' for weekly).
         multi_index (bool): If True, returns a DataFrame with MultiIndex columns.
+        day_of_week_map (dict): Mapping of day of week numbers to names.
 
     Returns:
         pd.DataFrame: The resampled DataFrame with aggregated counts and categories.
     """
+    if day_of_week_map is None:
+        day_of_week_map = DAY_OF_WEEK_MAP
+
     if df is None:
         df = load_processed_original_data(date_as_index=True, parse_dates=True)
 
@@ -64,7 +69,7 @@ def resample_data(
 
     # Map day of week numbers to names
     df["DIA_SEMANA_OCURRENCIA"] = df["DIA_SEMANA_OCURRENCIA"].map(
-        DAY_OF_WEEK_MAP
+        day_of_week_map
     )
 
     # Resample and aggregate

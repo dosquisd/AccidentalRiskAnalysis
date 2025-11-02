@@ -3,7 +3,11 @@ import warnings
 import pandas as pd
 import streamlit as st
 
-from dashboard.custom_utils import filter_data_by_date_range, select_dates
+from dashboard.custom_utils import (
+    FREQUENCY_OPTIONS,
+    filter_data_by_date_range,
+    select_dates,
+)
 from utils.load_data import load_processed_original_data, resample_data
 
 warnings.filterwarnings("ignore")
@@ -128,7 +132,9 @@ def lineplots(
         value=0.0,
         step=0.01,
         key="ewm_alpha_slider",
-        on_change=lambda: st.session_state.update({"lineplots_ewm_alpha_calcs": None}),
+        on_change=lambda: st.session_state.update(
+            {"lineplots_ewm_alpha_calcs": None}
+        ),
     )
 
     # Total accidents chart
@@ -247,19 +253,9 @@ def index(title: str = "LinePlots") -> None:
     if start_date is None or end_date is None:
         return
 
-    frequency_options = {
-        "Daily": "1D",
-        "Weekly": "1W",
-        "Biweekly": "2W",
-        "Monthly": "1ME",
-        "Quarterly": "3ME",
-        "Yearly": "1Y",
-        "Biennial": "2Y",
-    }
-
     selected_frequency = st.selectbox(
         label="Select Resampling Frequency:",
-        options=list(frequency_options.keys()),
+        options=list(FREQUENCY_OPTIONS.keys()),
         index=1,
         key="resample_frequency_selectbox",
         on_change=lambda: st.session_state.update(
@@ -281,7 +277,7 @@ def index(title: str = "LinePlots") -> None:
         # Then resample the filtered data
         resampled_data = resample_data(
             df=filtered_data,
-            freq=frequency_options[selected_frequency],
+            freq=FREQUENCY_OPTIONS[selected_frequency],
             multi_index=False,
         )
 

@@ -7,6 +7,71 @@ import streamlit as st
 
 T = TypeVar("T", pd.DataFrame, gpd.GeoDataFrame)
 
+FREQUENCY_OPTIONS = {
+    "Daily": "1D",
+    "Weekly": "1W",
+    "Biweekly": "2W",
+    "Monthly": "1ME",
+    "Quarterly": "3ME",
+    "Yearly": "1Y",
+    "Biennial": "2Y",
+}
+
+DAY_OF_WEEK_MAP = {
+    1: "MONDAY",
+    2: "TUESDAY",
+    3: "WEDNESDAY",
+    4: "THURSDAY",
+    5: "FRIDAY",
+    6: "SATURDAY",
+    7: "SUNDAY",
+}
+
+
+def transform_resample_data_for_boxplot(
+    df: pd.DataFrame,
+    col: str,
+    multi_index: bool = False,
+) -> pd.DataFrame:
+    filtered_df: pd.DataFrame
+
+    if multi_index:
+        filtered_df = df[col]
+        if isinstance(filtered_df, pd.Series):
+            filtered_df = filtered_df.to_frame()
+    else:
+        interest_columns = list(
+            filter(lambda df_col: df_col.startswith(col), df.columns)
+        )
+        columns = list(
+            map(
+                lambda df_col: df_col.split("-")[1].replace("_", " ").strip(),
+                interest_columns,
+            )
+        )
+        filtered_df = pd.DataFrame()
+        for i in range(len(interest_columns)):
+            filtered_df[columns[i]] = df[interest_columns[i]]
+
+    col_type = []
+    values = []
+    indexes = []
+    for index, row in filtered_df.iterrows():
+        for c in filtered_df.columns:
+            col_type.append(c)
+            values.append(row[c])
+            indexes.append(index)
+
+    new_df = pd.DataFrame(
+        {
+            col: col_type,
+            "value": values,
+        },
+        index=indexes,
+    )
+
+    return new_df
+
 
 def filter_data_by_date_range(df: T, start_date: date, end_date: date) -> T:
     """Filters the DataFrame by the selected date range."""

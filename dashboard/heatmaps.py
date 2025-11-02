@@ -3,7 +3,12 @@ import pandas as pd
 import seaborn as sns
 import streamlit as st
 
-from dashboard.custom_utils import filter_data_by_date_range, select_dates
+from dashboard.custom_utils import (
+    DAY_OF_WEEK_MAP,
+    FREQUENCY_OPTIONS,
+    filter_data_by_date_range,
+    select_dates,
+)
 from utils.load_data import load_processed_original_data, resample_data
 
 
@@ -164,17 +169,7 @@ def index(title: str = "Heat Maps") -> None:
         )
         processed_data["DIA_SEMANA_OCURRENCIA"] = processed_data[
             "DIA_SEMANA_OCURRENCIA"
-        ].map(
-            {
-                1: "MONDAY",
-                2: "TUESDAY",
-                3: "WEDNESDAY",
-                4: "THURSDAY",
-                5: "FRIDAY",
-                6: "SATURDAY",
-                7: "SUNDAY",
-            }
-        )
+        ].map(DAY_OF_WEEK_MAP)
 
         st.session_state.heatmap_cached_processed_data = processed_data
         st.session_state.heatmap_processed_data_needs_update = False
@@ -193,19 +188,9 @@ def index(title: str = "Heat Maps") -> None:
     if start_date is None or end_date is None:
         return
 
-    frequency_options = {
-        "Daily": "1D",
-        "Weekly": "1W",
-        "Biweekly": "2W",
-        "Monthly": "1ME",
-        "Quarterly": "3ME",
-        "Yearly": "1Y",
-        "Biennial": "2Y",
-    }
-
     selected_frequency = st.selectbox(
         label="Select Resampling Frequency:",
-        options=list(frequency_options.keys()),
+        options=list(FREQUENCY_OPTIONS.keys()),
         index=1,
         key="resample_frequency_selectbox",
         on_change=lambda: st.session_state.update(
@@ -227,7 +212,7 @@ def index(title: str = "Heat Maps") -> None:
         # Then resample the filtered data
         resampled_data = resample_data(
             df=filtered_data,
-            freq=frequency_options[selected_frequency],
+            freq=FREQUENCY_OPTIONS[selected_frequency],
             multi_index=True,
         )
 

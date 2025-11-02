@@ -6,7 +6,11 @@ import pandas as pd
 import streamlit as st
 from streamlit_folium import st_folium
 
-from dashboard.custom_utils import filter_data_by_date_range, select_dates
+from dashboard.custom_utils import (
+    DAY_OF_WEEK_MAP,
+    filter_data_by_date_range,
+    select_dates,
+)
 from utils.constants import RAW_DATA_DIR
 from utils.load_data import load_processed_original_data
 
@@ -182,15 +186,7 @@ def index(title: str = "Grouped by Localities") -> None:
             )
 
             gdf["DIA_SEMANA_OCURRENCIA"] = gdf["DIA_SEMANA_OCURRENCIA"].map(
-                {
-                    1: "MONDAY",
-                    2: "TUESDAY",
-                    3: "WEDNESDAY",
-                    4: "THURSDAY",
-                    5: "FRIDAY",
-                    6: "SATURDAY",
-                    7: "SUNDAY",
-                }
+                DAY_OF_WEEK_MAP
             )
 
             localities_cols = list(gdf["LOCALIDAD"].unique())
