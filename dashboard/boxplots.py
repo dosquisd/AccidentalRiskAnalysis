@@ -22,6 +22,8 @@ def show_boxplot(
     show_violin: bool = False,
     show_points: bool = False,
     parse_metric: bool = True,
+    sort_metrics: bool = False,
+    ascending_order: bool = True,
 ) -> None:
     if not y:
         y = "value"
@@ -37,6 +39,15 @@ def show_boxplot(
             lambda x: x.strip().replace("_", " ").title()
         )
 
+    metric_order = None
+    if sort_metrics and metric:
+        metric_order = (
+            df.groupby(metric)[y]
+            .median()
+            .sort_values(ascending=ascending_order)
+            .index.tolist()
+        )
+
     palette = sns.color_palette(palette)
     fig, ax = plt.subplots(figsize=(10, 6))
 
@@ -50,6 +61,7 @@ def show_boxplot(
             palette=palette,
             linewidth=0.5,
             alpha=0.3,
+            order=metric_order,
         )
 
     if show_points:
@@ -61,9 +73,18 @@ def show_boxplot(
             alpha=0.4,
             jitter=True,
             ax=ax,
+            order=metric_order,
         )
 
-    sns.boxplot(data=df, x=metric, y=y, ax=ax, width=0.3, palette=palette)
+    sns.boxplot(
+        data=df,
+        x=metric,
+        y=y,
+        ax=ax,
+        width=0.3,
+        palette=palette,
+        order=metric_order,
+    )
     ax.set(**labels_kwargs)
     ax.grid(True, linestyle="--", alpha=0.6)
 
@@ -128,11 +149,24 @@ def show_distrubution_over_time(
             key="distribution_boxplots_show_violin_checkbox",
         )
 
+        sort_metrics = st.checkbox(
+            label="Sort Categories by Median",
+            value=False,
+            key="distribution_boxplots_sort_metrics_checkbox",
+        )
+
     with col2:
         show_points = st.checkbox(
             label="Show Data Points",
             value=False,
             key="distribution_boxplots_show_points_checkbox",
+        )
+
+        ascending_order = st.checkbox(
+            label="Ascending Order (only if sorting)",
+            value=False,
+            disabled=not sort_metrics,
+            key="distribution_boxplots_ascending_order_checkbox",
         )
 
     show_boxplot(
@@ -148,6 +182,8 @@ def show_distrubution_over_time(
         show_violin=show_violin,
         show_points=show_points,
         parse_metric=True,
+        sort_metrics=sort_metrics,
+        ascending_order=ascending_order,
     )
 
 
@@ -166,11 +202,28 @@ def compare_boxplots_between_hours(
     if selected_metric == "TOTAL_ACCIDENTES":
         selected_metric = None
 
-    show_violin = st.checkbox(
-        label="Show Violin Plot",
-        value=False,
-        key="hours_boxplots_show_violin_checkbox",
-    )
+    col1, col2 = st.columns([2, 2])
+
+    with col1:
+        show_violin = st.checkbox(
+            label="Show Violin Plot",
+            value=False,
+            key="hours_boxplots_show_violin_checkbox",
+        )
+
+    with col2:
+        sort_metrics = st.checkbox(
+            label="Sort Categories by Median",
+            value=False,
+            key="hours_boxplots_sort_metrics_checkbox",
+        )
+
+        ascending_order = st.checkbox(
+            label="Ascending Order (only if sorting)",
+            value=False,
+            disabled=not sort_metrics,
+            key="hours_boxplots_ascending_order_checkbox",
+        )
 
     show_boxplot(
         df=df,
@@ -179,12 +232,15 @@ def compare_boxplots_between_hours(
             "title": "Box Plot of Variables vs Hour of Day",
             "ylabel": "Hour of Day",
             "xlabel": "",
+            "yticks": range(0, 24 + 1, 3),
         },
         y="HORA",
         palette="Set2",
         show_violin=show_violin,
         show_points=False,
         parse_metric=True,
+        sort_metrics=sort_metrics,
+        ascending_order=ascending_order,
     )
 
 
