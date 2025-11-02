@@ -1,7 +1,10 @@
 import streamlit as st
 
+from dashboard.boxplots import boxplots_index
 from dashboard.data import data_index
+from dashboard.heatmaps import heatmaps_index
 from dashboard.lineplots import lineplot_index
+from dashboard.localities import localities_index
 
 
 def introduction() -> None:
@@ -24,6 +27,9 @@ if __name__ == "__main__":
         "Introduction": introduction,
         "Data Overview": data_index,
         "Line Plots": lineplot_index,
+        "Heat Maps": heatmaps_index,
+        "Box Plots": boxplots_index,
+        "By Locality": localities_index,
     }
 
     page = st.sidebar.selectbox("Select a page:", list(index_pages.keys()))
