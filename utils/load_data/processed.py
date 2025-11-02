@@ -9,7 +9,7 @@ def load_processed_original_data(
     as_geopandas: bool = False,
     date_as_index: bool = False,
     parse_dates: bool = False,
-) -> pd.DataFrame:
+) -> pd.DataFrame | gpd.GeoDataFrame:
     """
     Loads the processed traffic accident data from a CSV file.
 
