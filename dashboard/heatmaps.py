@@ -134,7 +134,7 @@ def correlation_heatmap(
     plt.close(fig)
 
 
-def heatmaps_index(title: str = "Heat Maps") -> None:
+def index(title: str = "Heat Maps") -> None:
     st.markdown(f"# {title}")
     st.warning("""
         TODO: :red[Write about the heat maps that will be shown here. Explain what they represent,

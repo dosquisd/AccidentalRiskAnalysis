@@ -151,7 +151,7 @@ def metric_count_per_locality(
     )
 
 
-def localities_index(title: str = "Grouped by Localities") -> None:
+def index(title: str = "Grouped by Localities") -> None:
     st.markdown(f"# {title}")
     st.warning("""
         TODO: :red[Write about the map that will be shown here. Explain what it represents,

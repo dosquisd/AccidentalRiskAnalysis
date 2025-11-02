@@ -1,10 +1,10 @@
 import streamlit as st
 
-from dashboard.boxplots import boxplots_index
-from dashboard.data import data_index
-from dashboard.heatmaps import heatmaps_index
-from dashboard.lineplots import lineplot_index
-from dashboard.localities import localities_index
+from dashboard.boxplots import index as boxplots_index
+from dashboard.data import index as data_index
+from dashboard.heatmaps import index as heatmaps_index
+from dashboard.lineplots import index as lineplot_index
+from dashboard.localities import index as localities_index
 
 
 def introduction() -> None:

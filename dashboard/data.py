@@ -33,7 +33,7 @@ def download_button_data(df: pd.DataFrame, label: str, filename: str) -> None:
     )
 
 
-def data_index(title: str = "Data Overview") -> None:
+def index(title: str = "Data Overview") -> None:
     st.markdown(f"# {title}")
     st.warning("""
         TODO: :red[Write about the data that are being used in this project.]  

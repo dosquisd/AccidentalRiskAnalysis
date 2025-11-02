@@ -196,7 +196,7 @@ def lineplots(
     )
 
 
-def lineplot_index(title: str = "LinePlots") -> None:
+def index(title: str = "LinePlots") -> None:
     st.markdown(f"# {title}")
     st.warning("""
         TODO: :red[Write an introduction text about what the users can find in this section.]
