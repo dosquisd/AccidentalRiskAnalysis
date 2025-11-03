@@ -1,4 +1,5 @@
 from datetime import date
+from typing import TypedDict
 
 import folium
 import geopandas as gpd
@@ -15,6 +16,12 @@ from utils.constants import RAW_DATA_DIR
 from utils.load_data import load_processed_original_data
 
 LOCALIDAD_SHAPEFILE = RAW_DATA_DIR / "poligonos-localidades.zip"
+
+
+class LoadDataResult(TypedDict):
+    gdf: gpd.GeoDataFrame
+    start_date: date
+    end_date: date
 
 
 def plot_localities_map(
@@ -142,7 +149,6 @@ def metric_count_per_locality(
         else selected_metric
     )
     metrics_df = metrics_df[[column, "localidad_geometry"]]
-    st.dataframe(metrics_df[column].sort_values(ascending=False))
     plot_localities_map(
         gdf=(
             metrics_df.rename(columns={column: "ACCIDENTES"})
@@ -155,25 +161,7 @@ def metric_count_per_locality(
     )
 
 
-def index(title: str = "Grouped by Localities") -> None:
-    st.markdown(f"# {title}")
-    st.warning("""
-        TODO: :red[Write about the map that will be shown here. Explain what it represents,
-        the data source, and any relevant information for the user to understand the map.]
-    """)
-
-    # Initialize session states
-    if "localities_geopandas_loaded" not in st.session_state:
-        st.session_state.localities_geopandas_loaded = False
-    if "localities_gdf" not in st.session_state:
-        st.session_state.localities_gdf = None
-    if "localities_date_filter_changed" not in st.session_state:
-        st.session_state.localities_date_filter_changed = True
-    if "localities_filtered_gdf" not in st.session_state:
-        st.session_state.localities_filtered_gdf = None
-    if "localities_grouped_data" not in st.session_state:
-        st.session_state.localities_grouped_data = None
-
+def load_data() -> LoadDataResult | None:
     if (
         not st.session_state.localities_geopandas_loaded
         or st.session_state.localities_gdf is None
@@ -236,7 +224,7 @@ def index(title: str = "Grouped by Localities") -> None:
     ) or (None, None)
 
     if start_date is None or end_date is None:
-        return
+        return None
 
     if (
         st.session_state.localities_date_filter_changed
@@ -256,8 +244,85 @@ def index(title: str = "Grouped by Localities") -> None:
 
     if filtered_gdf.empty:
         st.warning("No accident data available for the selected date range.")
-        return
+        return None
+
+    return {
+        "gdf": filtered_gdf,
+        "start_date": start_date,
+        "end_date": end_date,
+    }
+
+
+def index(title: str = "Summary") -> None:
+    st.markdown(f"# {title}")
+
+    # Initialize session states
+    if "localities_geopandas_loaded" not in st.session_state:
+        st.session_state.localities_geopandas_loaded = False
+    if "localities_gdf" not in st.session_state:
+        st.session_state.localities_gdf = None
+    if "localities_date_filter_changed" not in st.session_state:
+        st.session_state.localities_date_filter_changed = True
+    if "localities_filtered_gdf" not in st.session_state:
+        st.session_state.localities_filtered_gdf = None
+    if "localities_grouped_data" not in st.session_state:
+        st.session_state.localities_grouped_data = None
+
+    data_loaded = load_data()
+    print(data_loaded)
+
+    if data_loaded is None:
+        return None
+    
+    filtered_gdf = data_loaded["gdf"]
+    start_date = data_loaded["start_date"]
+    end_date = data_loaded["end_date"]
 
     metric_count_per_locality(
         filtered_gdf, start_date=start_date, end_date=end_date
     )
+
+    st.markdown("---")
+
+    st.markdown("""
+        ## ¿Cuáles son las localidades con mayor cantidad de accidentes en Bogotá?
+
+        La mayor concentración de accidentes durante el periodo de 2007 y 2017 se ubicó en la zona norte de la ciudad.
+
+        * Engativá es la localidad con mayor número de accidentes registrados en el periodo analizado, con un total de 35.128 casos. Le siguen Suba, Usaquén y Kennedy, que también presentan altos niveles de accidentalidad.
+
+        ## ¿Cómo cambia la distribución de accidentes si filtramos por gravedad, clase o día de la semana?
+
+        Respecto a la gravedad, los patrones cambian:
+
+        * Kennedy presenta la mayor cantidad de accidentes con heridos, así como con muertos seguido de Engativá y Suba.
+        * Cuando se analizan los accidentes solo con daños, Usaquén es la localidad que cuenta con más casos, seguida de Suba y Engativá.
+
+        En cuanto a la clase, se logró observar que:
+
+        * Kennedy es la localidad con mayor número de atropellos, así como de volcamientos, caídas del ocupante y autolesiones, seguida de Engativá y Suba.
+        * En el caso de los choques, la localidad predominante es Usaquén, seguida por Engativá y suba.
+        * La cantidad de incendios alrededor de los años es mínima respecto al resto de clases; sin embargo, Santa Fe con 4 casos registrados, la cantidad más alta en una localidad, seguida de Kennedy y Chapinero con 3 cada una.
+
+        Por último, la distribución según los días de semana es la siguiente:
+
+        * De martes a viernes, el orden de accidentalidad por localidad es estable y constante, con un orden de Usaquén, Engativá, Suba y Kennedy.
+        * Los lunes, el patrón cambia ligeramente, Engativá se convierte en la localidad con más accidentes, seguida por Usaquén, Suba y Kennedy.
+        * Durante los fines de semana, la dinámica cambia de forma más marcada:
+        * Sábados: Suba, Kennedy, Engativá y Usaquén.
+        * Domingos: Kennedy pasa a ser la localidad con mayor accidentalidad, seguida por Engativá, Suba y Usaquén.
+                
+        ## Conclusiones
+
+        A pesar de que Engativá es la localidad con mayor cantidad de accidentes registrados en el periodo analizado, Kennedy concentra los incidentes más graves, tanto con heridos como con fallecidos, además, predomina en la mayoría de las clases. Por otro lado, Usaquén sobresale al ser la localidad con mayor número de eventos que solo involucran daños, así como por registrar la mayor cantidad de choques.
+
+        En cuanto a la distribución por días de la semana, durante los días laborales predominan Usaquén, Engativá y Suba en número total de accidentes, mientras que Kennedy toma mayor relevancia los fines de semana, llegando a ser la localidad con más siniestros los domingos.
+
+        Este contraste evidencia que la frecuencia de accidentes no necesariamente se asocia a mayor severidad y que la dinámica de accidentalidad depende también del comportamiento y movilidad según el día de la semana.
+    """)
+
+
+if __name__ == "__main__":
+    title = "Summary"
+    st.set_page_config(page_title=title, layout="wide")
+    index(title)

@@ -31,33 +31,3 @@ def download_button_data(df: pd.DataFrame, label: str, filename: str) -> None:
         file_name=filename,
         mime="text/csv",
     )
-
-
-def index(title: str = "Data Overview") -> None:
-    st.markdown(f"# {title}")
-    st.warning("""
-        TODO: :red[Write about the data that are being used in this project.]  
-        This includes sources, a description of the variables, and, finally, show
-        a preview of the data, allowing the user explore all the dataset (>300k rows)
-        and download it if desired.
-    """)
-
-    # Show raw data preview
-    st.subheader("Raw Data Preview")
-    raw_df = load_data_preview(raw=True)
-    st.dataframe(raw_df)
-    download_button_data(
-        raw_df,
-        label="Download Raw Data as CSV",
-        filename="raw_accident_data.csv",
-    )
-
-    # Show processed data preview
-    st.subheader("Processed Data Preview")
-    processed_df = load_data_preview(raw=False)
-    st.dataframe(processed_df)
-    download_button_data(
-        processed_df,
-        label="Download Processed Data as CSV",
-        filename="processed_accident_data.csv",
-    )

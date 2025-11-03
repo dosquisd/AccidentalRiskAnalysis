@@ -1,17 +1,17 @@
 import streamlit as st
 
-from dashboard.boxplots import index as boxplots_index
-from dashboard.data import index as data_index
-from dashboard.heatmaps import index as heatmaps_index
-from dashboard.lineplots import index as lineplot_index
-from dashboard.localities import index as localities_index
+from dashboard.data import download_button_data, load_data_preview
 from utils import configure_scienceplots
 
-configure_scienceplots()
+# This raise an exception if LaTeX is not installed
+try:
+    configure_scienceplots()
+except Exception:
+    pass
 
 
-def introduction() -> None:
-    st.markdown("# Introduction")
+def index(title: str = "Context and Data") -> None:
+    st.markdown(f"# {title}")
 
     st.markdown("""
         Welcome to the Accidental Risk Analysis Dashboard!
@@ -21,19 +21,36 @@ def introduction() -> None:
 
     st.warning("""
         :red[Maybe here write more about the project, data sources, about what
-        users can find in the dashboard, etc.]
+        users can find in the dashboard, etc.]  
+        Ana lo hará
     """)
+
+    col1, col2 = st.columns([2, 2])
+
+    with col1:
+        # Show raw data preview
+        st.subheader("Raw Data Preview")
+        raw_df = load_data_preview(raw=True)
+        st.dataframe(raw_df)
+        download_button_data(
+            raw_df,
+            label="Download Raw Data as CSV",
+            filename="raw_accident_data.csv",
+        )
+
+    with col2:
+        # Show processed data preview
+        st.subheader("Processed Data Preview")
+        processed_df = load_data_preview(raw=False)
+        st.dataframe(processed_df)
+        download_button_data(
+            processed_df,
+            label="Download Processed Data as CSV",
+            filename="processed_accident_data.csv",
+        )
 
 
 if __name__ == "__main__":
-    index_pages = {
-        "Introduction": introduction,
-        "Data Overview": data_index,
-        "Line Plots": lineplot_index,
-        "Heat Maps": heatmaps_index,
-        "Box Plots": boxplots_index,
-        "By Locality": localities_index,
-    }
-
-    page = st.sidebar.selectbox("Select a page:", list(index_pages.keys()))
-    index_pages[page]()
+    title = "Context and Data"
+    st.set_page_config(page_title=title, layout="wide")
+    index(title)
