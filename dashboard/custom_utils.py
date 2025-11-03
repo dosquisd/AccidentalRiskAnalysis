@@ -27,6 +27,27 @@ DAY_OF_WEEK_MAP = {
     7: "SUNDAY",
 }
 
+FOLIUM_COLORS = [
+    "red",
+    "blue",
+    "green",
+    "purple",
+    "orange",
+    "darkred",
+    "lightred",
+    "beige",
+    "darkblue",
+    "darkgreen",
+    "cadetblue",
+    "darkpurple",
+    "pink",
+    "lightblue",
+    "lightgreen",
+    "gray",
+    "black",
+    "lightgray",
+]
+
 
 def transform_resample_data_for_boxplot(
     df: pd.DataFrame,

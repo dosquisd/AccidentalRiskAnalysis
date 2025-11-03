@@ -1,23 +1,149 @@
-from typing import TypedDict
+from typing import Dict, TypedDict
 
+import folium
+import geopandas as gpd
 import matplotlib.pyplot as plt
+import networkx as nx
+import numpy as np
 import pandas as pd
 import seaborn as sns
 import streamlit as st
+from folium import CircleMarker, PolyLine
+from streamlit_folium import st_folium
 
 from dashboard.custom_utils import (
     DAY_OF_WEEK_MAP,
+    FOLIUM_COLORS,
     FREQUENCY_OPTIONS,
     filter_data_by_date_range,
     select_dates,
 )
+from utils.constants import RAW_DATA_DIR
 from utils.load_data import load_processed_original_data, resample_data
+
+LOCALIDAD_SHAPEFILE = RAW_DATA_DIR / "poligonos-localidades.zip"
 
 
 class LoadDataResult(TypedDict):
     processed_data: pd.DataFrame
     resampled_data: pd.DataFrame
     freq: str
+
+
+def load_locality_geopoints() -> gpd.GeoDataFrame:
+    # Load the processed original data as a GeoDataFrame
+    original_gdf = load_processed_original_data(
+        as_geopandas=True, parse_dates=True
+    )
+
+    localities_cols = list(original_gdf["LOCALIDAD"].unique())
+
+    # Load the locality shapefile
+    localities = gpd.read_file(LOCALIDAD_SHAPEFILE).to_crs("EPSG:4326")
+    localities["centroid"] = localities["geometry"].centroid.to_crs("EPSG:4326")
+
+    # Filter localities to only those present in the original data
+    localities = localities[localities["Nombre_de_l"].isin(localities_cols)]
+
+    # Drop unnecesary columns and rename
+    localities.drop(
+        columns=["Acto_admini", "Area_de_la_", "Identificad"], inplace=True
+    )
+    localities.rename(columns={"Nombre_de_l": "LOCALIDAD"}, inplace=True)
+
+    return localities
+
+
+def get_folium_map(
+    *,
+    localities: gpd.GeoDataFrame,
+    dist_matrix: pd.DataFrame,
+    mst: nx.Graph,
+    degree_centrality: Dict[str, float],
+    betweenness_centrality: Dict[str, float],
+    closeness_centrality: Dict[str, float],
+) -> folium.Map:
+    localities_centroids = (
+        localities[["LOCALIDAD", "centroid"]]
+        .set_index("LOCALIDAD")
+        .to_dict()["centroid"]
+    )
+
+    localities_centroids = dict(
+        map(
+            lambda item: (item[0], (item[1].xy[0][0], item[1].xy[1][0])),
+            localities_centroids.items(),
+        )
+    )
+
+    mid_point = localities.centroid.union_all().centroid.coords[0][::-1]
+    bogota_map = folium.Map(
+        location=mid_point,
+        zoom_start=10,
+        tiles="openstreetmap",
+    )
+    geo_df_list = [
+        [point.xy[1][0], point.xy[0][0]] for point in localities.centroid
+    ]
+    n_colors = len(FOLIUM_COLORS)
+    locality_color = dict(
+        (loc, FOLIUM_COLORS[i % n_colors])
+        for i, loc in enumerate(localities.LOCALIDAD)
+    )
+
+    for i, coordinates in enumerate(geo_df_list):
+        # Place the markers with the popup labels and data
+        locality = localities["LOCALIDAD"].iloc[i]
+
+        # Plot the locality polygons
+        polygon = folium.vector_layers.Polygon(
+            locations=[
+                [coord[1], coord[0]]
+                for coord in localities["geometry"].iloc[i].exterior.coords
+            ],
+            color=locality_color[locality],
+            fill=True,
+            fill_color=locality_color[locality],
+            fill_opacity=0.2,
+        )
+        polygon.add_to(bogota_map)
+
+    # Add edges from the MST to the map
+    for edge in mst.edges():
+        node1, node2 = edge
+        coord1 = localities_centroids[node1]
+        coord2 = localities_centroids[node2]
+
+        # Obtener el peso de la arista (distancia)
+        weight = mst[node1][node2].get("weight", dist_matrix.loc[node1, node2])
+
+        # Draw the edge between the two nodes
+        PolyLine(
+            locations=[(coord1[1], coord1[0]), (coord2[1], coord2[0])],
+            color="blue",
+            weight=2,
+            opacity=0.8,
+            tooltip=f"{node1} - {node2}: {weight:.2f}",
+        ).add_to(bogota_map)
+
+    # Add node as markers to the map
+    for node, coord in localities_centroids.items():
+        CircleMarker(
+            location=[coord[1], coord[0]],
+            radius=8,
+            popup=(
+                f"{node}\n"
+                f"Degree: {degree_centrality[node]:.2f}\n"
+                f"Betweenness: {betweenness_centrality[node]:.2f}\n"
+                f"Closeness: {closeness_centrality[node]:.2f}"
+            ),
+            color="red",
+            fill=True,
+            fillColor="red",
+            fillOpacity=0.9,
+        ).add_to(bogota_map)
+
+    return bogota_map
 
 
 def contingency_heatmap(df: pd.DataFrame) -> None:
@@ -133,6 +259,69 @@ def correlation_heatmap(
 
     fig.clf()
     plt.close(fig)
+
+    # ==============================
+
+    st.markdown("### MST applied to LOCALIDAD distance matrix")
+
+    st.markdown("""
+        La matriz de distancia se calculó de esta manera:
+                
+        $$
+        D_{i, j} = \sqrt{2(1 - C_{i, j})}
+        $$
+    """)
+
+    if st.session_state.localities_geometry_gpd is None:
+        localities_geometry_gpd = load_locality_geopoints()
+        st.session_state.localities_geometry_gpd = localities_geometry_gpd
+    else:
+        localities_geometry_gpd = st.session_state.localities_geometry_gpd
+
+    # Create a cache key based on the correlation matrix
+    cache_key = hash(corr_matrix.values.tobytes())
+
+    # Check if we need to recompute the MST and centrality metrics
+    if (
+        "mst_cache_key" not in st.session_state
+        or st.session_state.mst_cache_key != cache_key
+        or "mst_data" not in st.session_state
+    ):
+        dist_matrix = np.sqrt(2 * (1 - corr_matrix))
+        graph = nx.from_pandas_adjacency(dist_matrix)
+        mst = nx.minimum_spanning_tree(graph)
+        degree_centrality = nx.degree_centrality(mst)
+        betweenness_centrality = nx.betweenness_centrality(mst)
+        closeness_centrality = nx.closeness_centrality(mst)
+
+        # Cache the results
+        st.session_state.mst_cache_key = cache_key
+        st.session_state.mst_data = {
+            "dist_matrix": dist_matrix,
+            "mst": mst,
+            "degree_centrality": degree_centrality,
+            "betweenness_centrality": betweenness_centrality,
+            "closeness_centrality": closeness_centrality,
+        }
+    else:
+        # Use cached data
+        cached_data = st.session_state.mst_data
+        dist_matrix = cached_data["dist_matrix"]
+        mst = cached_data["mst"]
+        degree_centrality = cached_data["degree_centrality"]
+        betweenness_centrality = cached_data["betweenness_centrality"]
+        closeness_centrality = cached_data["closeness_centrality"]
+
+    folium_map = get_folium_map(
+        localities=localities_geometry_gpd,
+        dist_matrix=dist_matrix,
+        mst=mst,
+        degree_centrality=degree_centrality,
+        betweenness_centrality=betweenness_centrality,
+        closeness_centrality=closeness_centrality,
+    )
+
+    st_folium(folium_map, width=700, height=500, returned_objects=[])
 
     # ==============================
 
@@ -252,6 +441,12 @@ def index(title: str = "Correlation between variables") -> None:
     st.markdown(f"## {title}")
 
     # Initialize session state
+    if "localities_geometry_gpd" not in st.session_state:
+        st.session_state.localities_geometry_gpd = None
+    if "mst_cache_key" not in st.session_state:
+        st.session_state.mst_cache_key = None
+    if "mst_data" not in st.session_state:
+        st.session_state.mst_data = None
     if "heatmap_processed_data_needs_update" not in st.session_state:
         st.session_state.heatmap_processed_data_needs_update = True
     if "heatmap_cached_processed_data" not in st.session_state:
