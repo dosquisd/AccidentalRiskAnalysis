@@ -273,7 +273,7 @@ def index(title: str = "Summary") -> None:
 
     if data_loaded is None:
         return None
-    
+
     filtered_gdf = data_loaded["gdf"]
     start_date = data_loaded["start_date"]
     end_date = data_loaded["end_date"]
@@ -323,6 +323,6 @@ def index(title: str = "Summary") -> None:
 
 
 if __name__ == "__main__":
-    title = "Summary"
-    st.set_page_config(page_title=title, layout="wide")
+    title = "Summary & Overview"
+    st.set_page_config(page_title=title, page_icon="📊", layout="wide")
     index(title)
