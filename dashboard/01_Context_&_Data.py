@@ -21,8 +21,7 @@ def index(title: str = "Context and Data") -> None:
 
     st.warning("""
         :red[Maybe here write more about the project, data sources, about what
-        users can find in the dashboard, etc.]  
-        Ana lo hará
+        users can find in the dashboard, etc.]
     """)
 
     col1, col2 = st.columns([2, 2])

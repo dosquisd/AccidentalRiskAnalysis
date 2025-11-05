@@ -293,17 +293,31 @@ def correlation_heatmap(
 
         En general, la mayoría de las correlaciones entre localidades son positivas, lo que indica que los aumentos o disminuciones en una zona suelen acompañarse de cambios en otras. Las correlaciones negativas existen, pero son muy cercanas a cero, por lo que no sugieren una relación inversamente proporcional significativa entre localidades.
 
-        **Localidad influyentes**.
-
         * Las correlaciones más altas (0.62) se presentan entre dos pares:
-        * Ciudad Bolívar - Kennedy, en el sur y suroccidente.
-        * Usaquén - Chapinero, ubicadas en el norte/centro-oriente.
+          * Ciudad Bolívar - Kennedy, en el sur y suroccidente.
+          * Usaquén - Chapinero, ubicadas en el norte/centro-oriente.
 
-        Aunque comparten nivel de correlación, se dan en contextos geográficos distintos.
+          Aunque comparten nivel de correlación, se dan en contextos geográficos distintos.
 
         * La siguiente correlación más alta (0.59) se da entre las localidades de Teusaquillo y Chapinero, estas se encuentran cerca.
 
         Estas correlaciones elevadas indican que cuando aumentan o disminuyan los accidentes en una de las localidades del par, lo más probable es que también aumenten o disminuyan en la otra.
+
+        **Localidad influyentes**.
+
+        * La localidad de Kennedy muestra una fuerte influencia sobre el comportamiento general de los accidentes en Bogotá.
+          * De las 18 localidades analizadas (excluyendo a Kennedy), 10 de ellas presentan una correlación lineal superior a 0.4.
+          * Cuando la cantidad de accidentes de la localidad de Kennedy aumenta, tienden a aumentar en otras localidades.
+        * Ciudad Bolívar es la segunda localidad con más correlaciones lineales fuertes:
+          * Supera el umbral de 0.4 con Kennedy, Fontibón, Suba, Bosa, Rafael Uribe Uribe, Tunjuelito y Usme.
+          * Su comportamiento está fuertemente vinculado con el de las localidades del sur y suroccidente de Bogotá.
+
+        Sin embargo, si elevamos el umbral de correlación a valores superiores a 0.5, se evidencia un grupo de localidades con correlaciones especialmente altas entre sí, lo que indica una influencia significativa dentro de su propio sector de la ciudad.
+
+        * Chapinero se convierte en la localidad más influyente bajo este criterio, presentando correlaciones superiores a 0.5 con Teusaquillo, Usaquén, Santa Fe y Barrios Unidos. Todas estas localidades son vecinas de Chapinero.
+        * Teusaquillo, Usaquén y Barrios Unidos muestran un comportamiento altamente conectado (correlaciones > 0.5 con tres localidades), destacándose por la fuerte relación que mantienen entre ellas y con Chapinero.
+
+        Este conjunto de localidades mencionadas en el segundo umbral conforma una agrupación ubicada en el centro-norte de Bogotá. Esto sugiere que un aumento en la accidentalidad en cualquiera de estas localidades tiene una alta probabilidad de reflejarse en las otras.
 
         **Localidades con baja correlación**.
 
@@ -537,7 +551,9 @@ def index(title: str = "Correlation between variables") -> None:
     st.markdown("""
         ### Conclusiones
 
-        Los choques se asocian fuertemente con los accidentes de solo daños, mientras que los atropellos, volcamientos y caídas de ocupante están más vinculados con la ocurrencia de heridos. La severidad varía territorialmente: aunque la mayoría de localidades mantienen altos porcentajes de incidentes sin lesiones, zonas como Usme, Bosa y San Cristóbal, reflejan mayores proporciones de accidentes con heridos o con clases más riesgosas. Además, la distribución por días de la semana evidencia incrementos claros durante viernes y sábado y una alta variabilidad los domingos. Estos patrones revelan diferencias significativas en el comportamiento de los accidentes según el contexto espacial y temporal de cada localidad.
+        Los choques se asocian fuertemente con los accidentes de solo daños, mientras que los atropellos, volcamientos y caídas de ocupante están más vinculados con la ocurrencia de heridos. La severidad varía territorialmente, aunque la mayoría de localidades mantienen altos porcentajes de incidentes sin lesiones; zonas como Usme, Bosa y San Cristóbal reflejan mayores proporciones de accidentes con heridos o con clases más riesgosas. Además, la distribución por días de la semana evidencia incrementos claros durante viernes y sábado y una alta variabilidad los domingos. Estos patrones revelan diferencias significativas en el comportamiento de los accidentes según el contexto espacial y temporal de cada localidad.
+
+        Por otra parte, se observó que las localidades con mayor cantidad de accidentes no necesariamente son aquellas que presentan relaciones lineales más fuertes con otras zonas. Con un umbral medio (>0.4), Kennedy y Ciudad Bolívar se destacaron por su influencia, pero al aplicar un umbral más alto (>0.5) emergen localidades cuya influencia es aún más marcada. Chapinero sobresale como la localidad más influyente, al presentar correlaciones fuertes con cuatro localidades: Teusaquillo, Usaquén, Santa Fe y Barrios Unidos, todas ellas vecinas. Asimismo, Teusaquillo, Usaquén y Barrios Unidos muestran conexiones sólidas entre sí y con Chapinero, conformando un conjunto de localidades cuya dinámica sugiere que un aumento en la accidentalidad en una de estas zonas podría reflejarse también en las demás.
     """)
 
 

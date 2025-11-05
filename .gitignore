@@ -11,3 +11,4 @@ __pycache__/
 # Hidden files used for testing
 .ipynb
 .py
+.md
