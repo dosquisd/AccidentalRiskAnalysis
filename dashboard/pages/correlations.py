@@ -209,6 +209,34 @@ def contingency_heatmap(df: pd.DataFrame) -> None:
     fig.clf()
     plt.close(fig)
 
+    st.markdown(r"""
+    ### ¿En qué localidades los accidentes tienden a ser más graves?
+
+    * En la mayoría de las localidades, los accidentes solo daños son la categoría dominante (65-80%).
+    * Los accidentes con heridos son relativamente más frecuentes en Bosa, Rafael Uribe Uribe, San Cristóbal y Usme.
+    * Aunque los accidentes con muertos son bajos en todas las zonas (<3%), destacan ligeramente Usme, Ciudad Bolívar y Bosa.
+
+    ### ¿Qué tipos de accidentes predominan en cada localidad?
+
+    * Los choques representan más del 70% en prácticamente todas las localidades, llegando hasta 89.3% en Usaquén.
+
+    * Los atropellos destacan más en Usme, San Cristóbal y Ciudad Bolívar, lo que podría sugerir mayor vulnerabilidad peatonal en estas zonas.
+    * Volcamientos, caída de ocupante y autolesiones son poco frecuentes, pero resaltan:
+        * Volcamientos: Usme y Candelaria.
+        * Caída del ocupante: San Cristóbal y Usme.
+        * Autolesiones: Usme y Rafael Uribe Uribe, el resto de valores se mantiene entre 0.7 y 0.9, a diferencia de Chapinero con 0.6.
+    * Incendios es la clase menos común en toda la ciudad, con valores prácticamente nulos.
+
+    ### ¿Qué días predominan en cada localidad?
+
+    * Viernes y sábado destacan como los días con mayor participación en la mayoría de las localidades, con valores en torno al 16% o más.
+    * Los Mártires es la única localidad con ambos días (viernes y sábado) por encima del umbral del 16%.
+    * Chapinero muestra niveles elevados en cuatro días de la semana (todos superiores al 16%), reflejando una actividad urbana sostenida.
+    * El domingo es el día que muestra la mayor variabilidad:
+        * Mayor valor: Usme (17.2%)
+        * Valores más bajos: Los Mártires y Puente Aranda (8.4%)
+    """)
+
 
 def correlation_heatmap(
     df: pd.DataFrame = None,
@@ -259,6 +287,29 @@ def correlation_heatmap(
 
     fig.clf()
     plt.close(fig)
+
+    st.markdown("""
+        ### ¿El crecimiento de accidentes en una localidad está linealmente correlacionado con el de otras localidades?
+
+        En general, la mayoría de las correlaciones entre localidades son positivas, lo que indica que los aumentos o disminuciones en una zona suelen acompañarse de cambios en otras. Las correlaciones negativas existen, pero son muy cercanas a cero, por lo que no sugieren una relación inversamente proporcional significativa entre localidades.
+
+        **Localidad influyentes**.
+
+        * Las correlaciones más altas (0.62) se presentan entre dos pares:
+        * Ciudad Bolívar - Kennedy, en el sur y suroccidente.
+        * Usaquén - Chapinero, ubicadas en el norte/centro-oriente.
+
+        Aunque comparten nivel de correlación, se dan en contextos geográficos distintos.
+
+        * La siguiente correlación más alta (0.59) se da entre las localidades de Teusaquillo y Chapinero, estas se encuentran cerca.
+
+        Estas correlaciones elevadas indican que cuando aumentan o disminuyan los accidentes en una de las localidades del par, lo más probable es que también aumenten o disminuyan en la otra.
+
+        **Localidades con baja correlación**.
+
+        * La Candelaria, Antonio Nariño y Los Mártires muestran correlaciones bajas con la mayoría de Bogotá (generalmente < 0.3).
+        * No es posible determinar las causas solo a partir de la matriz de correlación.
+    """)
 
     # ==============================
 
@@ -325,6 +376,7 @@ def correlation_heatmap(
 
     # ==============================
 
+    st.markdown("---")
     st.markdown("### GRAVEDAD vs CLASE correlation")
 
     gravedad_cols = list(df["GRAVEDAD"].columns)
@@ -358,6 +410,14 @@ def correlation_heatmap(
 
     fig.clf()
     plt.close(fig)
+
+    st.markdown("""
+        ### ¿Qué tipos de accidentes están más asociados con lesiones o fatalidades?
+
+        * Los accidentes de solo daños tienen una correlación lineal fuerte con los choques (0.97), indicando que la mayoría de incidentes sin heridos corresponden a este tipo.
+        * Los accidentes con heridos muestran una correlación elevada con cinco clases, especialmente con atropello (0.84), seguido de otro, choque, volcamiento y caída de ocupante. Esto sugiere que estas clases están detrás de la mayoría de las lesiones.
+        * Los accidentes con muertos presentan correlaciones por debajo de 0.4, lo que indica que la fatalidad no depende principalmente del tipo de accidente, sino de factores externos.
+    """)
 
 
 def load_data() -> LoadDataResult | None:
@@ -471,6 +531,14 @@ def index(title: str = "Correlation between variables") -> None:
     st.markdown("---")
 
     contingency_heatmap(processed_data)
+
+    st.markdown("---")
+
+    st.markdown("""
+        ### Conclusiones
+
+        Los choques se asocian fuertemente con los accidentes de solo daños, mientras que los atropellos, volcamientos y caídas de ocupante están más vinculados con la ocurrencia de heridos. La severidad varía territorialmente: aunque la mayoría de localidades mantienen altos porcentajes de incidentes sin lesiones, zonas como Usme, Bosa y San Cristóbal, reflejan mayores proporciones de accidentes con heridos o con clases más riesgosas. Además, la distribución por días de la semana evidencia incrementos claros durante viernes y sábado y una alta variabilidad los domingos. Estos patrones revelan diferencias significativas en el comportamiento de los accidentes según el contexto espacial y temporal de cada localidad.
+    """)
 
 
 if __name__ == "__main__":
