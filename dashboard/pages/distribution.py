@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, TypedDict
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -11,6 +11,72 @@ from dashboard.custom_utils import (
     transform_resample_data_for_boxplot,
 )
 from utils.load_data import load_processed_original_data, resample_data
+
+
+class LoadDataResult(TypedDict):
+    processed_data: pd.DataFrame
+    resampled_data: pd.DataFrame
+    freq: str
+
+
+def load_data() -> LoadDataResult | None:
+    if (
+        st.session_state.boxplots_processed_data_needs_update
+        or st.session_state.boxplots_cached_processed_data is None
+    ):
+        processed_data = load_processed_original_data(
+            as_geopandas=False,
+            date_as_index=True,
+            parse_dates=True,
+        )
+
+        processed_data["DIA_SEMANA_OCURRENCIA"] = processed_data[
+            "DIA_SEMANA_OCURRENCIA"
+        ].map(DAY_OF_WEEK_MAP)
+
+        processed_data["HORA"] = processed_data.index.hour
+
+        st.session_state.boxplots_cached_processed_data = processed_data
+        st.session_state.boxplots_processed_data_needs_update = False
+    else:
+        processed_data = st.session_state.boxplots_cached_processed_data
+
+    selected_frequency = st.selectbox(
+        label="Select Resampling Frequency:",
+        options=list(FREQUENCY_OPTIONS.keys()),
+        index=1,
+        key="resample_frequency_selectbox",
+        on_change=lambda: st.session_state.update(
+            {"boxplots_resample_data_needs_update": True}
+        ),
+    )
+
+    if (
+        st.session_state.boxplots_resample_data_needs_update
+        or st.session_state.boxplots_cached_resampled_data is None
+    ):
+        resampled_data = resample_data(
+            freq=FREQUENCY_OPTIONS[selected_frequency],
+            multi_index=True,
+            day_of_week_map=DAY_OF_WEEK_MAP,
+        )
+
+        st.session_state.boxplots_cached_resampled_data = resampled_data
+        st.session_state.boxplots_resample_data_needs_update = False
+        st.session_state.boxplots_transformed_data_needs_update = True
+        st.session_state.boxplots_cached_transformed_data = None
+    else:
+        resampled_data = st.session_state.boxplots_cached_resampled_data
+
+    if resampled_data.empty:
+        st.info("No data available for the selected date range and frequency.")
+        return None
+
+    return {
+        "processed_data": processed_data,
+        "resampled_data": resampled_data,
+        "freq": selected_frequency,
+    }
 
 
 def show_boxplot(
@@ -244,7 +310,7 @@ def compare_boxplots_between_hours(
     )
 
 
-def index(title: str = "Box Plots") -> None:
+def index(title: str = "Distribution over time") -> None:
     st.markdown(f"# {title}")
     st.warning("""
         TODO: :red[Write about the box plots that will be shown here. Explain what they represent,
@@ -267,57 +333,13 @@ def index(title: str = "Box Plots") -> None:
     if "boxplots_cached_transformed_data" not in st.session_state:
         st.session_state.boxplots_cached_transformed_data = None
 
-    if (
-        st.session_state.boxplots_processed_data_needs_update
-        or st.session_state.boxplots_cached_processed_data is None
-    ):
-        processed_data = load_processed_original_data(
-            as_geopandas=False,
-            date_as_index=True,
-            parse_dates=True,
-        )
+    load_data_result = load_data()
+    if load_data_result is None:
+        return None
 
-        processed_data["DIA_SEMANA_OCURRENCIA"] = processed_data[
-            "DIA_SEMANA_OCURRENCIA"
-        ].map(DAY_OF_WEEK_MAP)
-
-        processed_data["HORA"] = processed_data.index.hour
-
-        st.session_state.boxplots_cached_processed_data = processed_data
-        st.session_state.boxplots_processed_data_needs_update = False
-    else:
-        processed_data = st.session_state.boxplots_cached_processed_data
-
-    selected_frequency = st.selectbox(
-        label="Select Resampling Frequency:",
-        options=list(FREQUENCY_OPTIONS.keys()),
-        index=1,
-        key="resample_frequency_selectbox",
-        on_change=lambda: st.session_state.update(
-            {"boxplots_resample_data_needs_update": True}
-        ),
-    )
-
-    if (
-        st.session_state.boxplots_resample_data_needs_update
-        or st.session_state.boxplots_cached_resampled_data is None
-    ):
-        resampled_data = resample_data(
-            freq=FREQUENCY_OPTIONS[selected_frequency],
-            multi_index=True,
-            day_of_week_map=DAY_OF_WEEK_MAP,
-        )
-
-        st.session_state.boxplots_cached_resampled_data = resampled_data
-        st.session_state.boxplots_resample_data_needs_update = False
-        st.session_state.boxplots_transformed_data_needs_update = True
-        st.session_state.boxplots_cached_transformed_data = None
-    else:
-        resampled_data = st.session_state.boxplots_cached_resampled_data
-
-    if resampled_data.empty:
-        st.info("No data available for the selected date range and frequency.")
-        return
+    processed_data = load_data_result["processed_data"]
+    resampled_data = load_data_result["resampled_data"]
+    selected_frequency = load_data_result["freq"]
 
     columns_options = list(
         set(map(lambda item: item[0], resampled_data.columns.tolist()))
@@ -332,3 +354,9 @@ def index(title: str = "Box Plots") -> None:
     st.markdown("---")
 
     compare_boxplots_between_hours(processed_data, columns_options)
+
+
+if __name__ == "__main__":
+    title = "Distribution over time"
+    st.set_page_config(page_title=title, layout="centered")
+    index(title=title)
