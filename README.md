@@ -24,6 +24,10 @@ El proyecto está organizado de manera modular para facilitar la reproducibilida
 ├── data/                # Almacenamiento de datos (Git-ignored por defecto las fuentes grandes)
 │   ├── raw/             # Datos crudos originales (CSV, GeoJSON)
 │   └── processed/       # Datos limpios y transformados listos para análisis
+├── deployment/          # Configuración para despliegue en producción
+│   ├── docker-compose.yml  # Orquestación de servicios (Traefik + Dashboard)
+│   ├── .env.example     # Plantilla de variables de entorno
+│   └── README.md        # Guía técnica de despliegue
 ├── figures/             # Visualizaciones estáticas generadas (PDF, HTML)
 │   ├── barplots/        # Gráficos de barras
 │   ├── maps/            # Mapas interactivos y estáticos de localidades
@@ -88,6 +92,17 @@ docker run -p 8501:8501 bogota-accidents-dashboard
 ```
 
 Una vez ejecutado (por cualquier método), abre tu navegador en: `http://localhost:8501`
+
+## 🌐 Despliegue en Producción
+
+Para desplegar el dashboard en un entorno de producción con HTTPS, reverse proxy y alta disponibilidad, consulta la guía técnica completa en [deployment/README.md](./deployment/README.md).
+
+La configuración de despliegue incluye:
+
+* Orquestación con Docker Compose
+* Reverse proxy con Traefik
+* Certificados SSL automáticos con Let's Encrypt
+* Configuración lista para servidores en la nube
 
 ## 🛠️ Tecnologías Utilizadas
 
