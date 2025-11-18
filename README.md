@@ -6,6 +6,12 @@ Este proyecto analiza la accidentalidad vial en Bogotá (2007-2017), procesando 
 
 El repositorio incluye un Dashboard interactivo desarrollado en **Streamlit** para explorar estos hallazgos.
 
+---
+
+**Para más información sobre el análisis completo de los resultados, metodologías aplicadas y conclusiones en detalle, ver [aquí](./docs/AnalisisAccidentalibilidadEnBogota.pdf)**
+
+---
+
 ## 📂 Estructura del Repositorio
 
 El proyecto está organizado de manera modular para facilitar la reproducibilidad y el escalamiento:
@@ -149,6 +155,8 @@ El dashboard está dividido en las siguientes secciones, que corresponden a los 
 Para ejecutar la aplicación, consulta la sección [Instalación y Ejecución Local](#-instalación-y-ejecución-local) del `README.md` principal.
 
 Para más información sobre la estructura interna, ver [dashboard/README.md](./dashboard/README.md)
+
+---
 
 ## 👥 Autores
 
