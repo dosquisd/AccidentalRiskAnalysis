@@ -311,7 +311,9 @@ def index(title: str = "Summary") -> None:
         * Durante los fines de semana, la dinámica cambia de forma más marcada:
         * Sábados: Suba, Kennedy, Engativá y Usaquén.
         * Domingos: Kennedy pasa a ser la localidad con mayor accidentalidad, seguida por Engativá, Suba y Usaquén.
-                
+
+        ---
+
         ## Conclusiones
 
         A pesar de que Engativá es la localidad con mayor cantidad de accidentes registrados en el periodo analizado, Kennedy concentra los incidentes más graves, tanto con heridos como con fallecidos, además, predomina en la mayoría de las clases. Por otro lado, Usaquén sobresale al ser la localidad con mayor número de eventos que solo involucran daños, así como por registrar la mayor cantidad de choques.

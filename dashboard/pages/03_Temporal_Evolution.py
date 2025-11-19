@@ -306,8 +306,25 @@ def load_data() -> LoadDataResult | None:
 
 def index(title: str = "LinePlots") -> None:
     st.markdown(f"# {title}")
-    st.warning("""
-        TODO: :red[Write an introduction text about what the users can find in this section.]
+    st.markdown("""
+        ## Análisis de Series de Tiempo
+        Esta sección se centra en la dimensión temporal de la accidentalidad en Bogotá entre **2007 y 2017**. El objetivo es ir más allá de los números totales y entender la **dinámica** de los siniestros a lo largo de una década.
+
+        ### ¿Qué encontrará en esta herramienta?
+
+        A través de gráficos interactivos de series temporales, usted podrá:
+        * **Identificar Tendencias:** Distinguir si la accidentalidad está aumentando, disminuyendo o si es estable a largo plazo.
+        * **Detectar Estacionalidad:** Observar ciclos recurrentes (por ejemplo, picos en ciertos meses o caídas a principio de año).
+        * **Explorar Granularidad:** Utilizar el selector de **Frecuencia** para analizar los datos desde una vista macro (Anual/Trimestral) hasta una vista detallada (Semanal/Diaria).
+        * **Comparar Localidades:** Contrastar el comportamiento histórico de zonas específicas (ej. *Kennedy vs. Usaquén*) para ver si siguen el patrón global de la ciudad o tienen dinámicas propias.
+
+        ### 🎛️ Herramienta de Suavizado (EWM)
+
+        Para facilitar la lectura de tendencias en medio de la volatilidad de los datos diarios o semanales, hemos incluido un control deslizante de **EWM Alpha** (Media Móvil Exponencial Ponderada).
+        * **$\\alpha = 0$**: Muestra los datos crudos con toda su variabilidad.
+        * **$\\alpha \\to 1$**: Aplica un suavizado más agresivo, útil para visualizar la tendencia subyacente eliminando el "ruido" de corto plazo.
+
+        ---
     """)
 
     # Initialize session state
@@ -338,24 +355,17 @@ def index(title: str = "LinePlots") -> None:
     st.markdown(""" 
         ### ¿Cómo ha evolucionado la accidentalidad en Bogotá alrededor de los años 2007 y 2017?
 
-        El análisis de las series temporales permite identificar patrones, picos y comportamientos estructurales en la accidentalidad de Bogotá durante el periodo 2007–2017. Los principales hallazgos son los siguientes:
-
+        El análisis de las series temporales permite identificar patrones, picos y comportamientos estructurales en la accidentalidad de Bogotá durante el periodo 2007-2017. Los principales hallazgos son los siguientes:
         * Se observan picos y caídas recurrentes en los datos, especialmente:
             * Entre diciembre y enero, donde suele haber disminuciones marcadas (la más notable de diciembre 2008 a enero 2009).
             * Caídas adicionales ocurren entre los meses de marzo y mayo.
-
         * Después de cada caída, la serie muestra un aumento progresivo, lo que sugiere ciclos estacionales de descenso y recuperación.
-
         * A partir de 2010, la tendencia general muestra un incremento sostenido en el número de accidentes.
-
         * Entre 2007 y 2009, los niveles de accidentalidad mensual fueron altos.
-
         * En la vista trimestral, se observa:
             * Un salto inicial en 2007, pasando de 2.633 a 9.187 accidentes por trimestre.
             * Un descenso sostenido entre 2008 y 2010.
-
         * Entre 2011 y 2015 se presenta un periodo relativamente estable, con un aumento entre 2010 y 2013 y una disminución en la accidentalidad semanal entre 2013 y 2015.
-
         * A partir de 2015, se evidencia un incremento en la cantidad de accidentes.
 
         La caída observada al final de 2017 en todos los gráficos no refleja una disminución real, sino que se debe a que los datos disponibles llegan únicamente hasta el 29 de septiembre.
@@ -378,20 +388,17 @@ def index(title: str = "LinePlots") -> None:
         * Puente Aranda: muestra la caída, aunque menos pronunciada; presenta un aumento moderado hacia 2016.
 
         Entre las cuatro localidades con más accidentes (Engativá, Suba, Usaquén y Kennedy), al comparar sus series anuales, se observan similitudes, pero también diferencias:
-
         * Kennedy: inicia 2007 con niveles anormalmente altos; en vez de subir entre 2010 y 2013 (como Bogotá en general), presenta una disminución y luego un aumento después de 2013.
         * Usaquén: destaca por picos en 2008 y 2009 (también se observa la baja del 2009, pero afecta menos que en otras localidades). Presenta una baja después de 2015, a diferencia del aumento global.
-        * Engativá y Suba: siguen más de cerca la tendencia global, con caídas en 2009 y un aumento progresivo hacia 2015–2016.
-
+        * Engativá y Suba: siguen más de cerca la tendencia global, con caídas en 2009 y un aumento progresivo hacia 2015-2016.
     """)
 
     st.markdown("---")
 
     st.markdown("""
-        ### Conclusiones
+        ## Conclusiones
 
         Aunque la accidentalidad en Bogotá no presenta una tendencia lineal clara, es posible dividir el periodo en varias etapas:  
-
         * La accidentalidad se mantiene elevada y relativamente constante durante el 2007 y 2008.  
         * Caída del año 2008 hacia el 2009.  
         * Subida desde el 2010 hasta el 2013.  
@@ -403,6 +410,6 @@ def index(title: str = "LinePlots") -> None:
 
 
 if __name__ == "__main__":
-    title = "Temporal Evolution of Accidents"
+    title = "📈 Evolución Temporal y Tendencias"
     st.set_page_config(page_title=title, layout="wide")
     index(title)

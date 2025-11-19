@@ -149,6 +149,27 @@ def get_folium_map(
 def contingency_heatmap(df: pd.DataFrame) -> None:
     st.markdown("## Contingency Heatmap")
 
+    if st.session_state.localities_geometry_gpd is None:
+        localities_geometry_gpd = load_locality_geopoints()
+        st.session_state.localities_geometry_gpd = localities_geometry_gpd
+
+        localities_centroids = (
+            localities_geometry_gpd[["LOCALIDAD", "centroid"]]
+            .set_index("LOCALIDAD")
+            .to_dict()["centroid"]
+        )
+
+        localities_centroids = dict(
+            map(
+                lambda item: (item[0], (item[1].xy[0][0], item[1].xy[1][0])),
+                localities_centroids.items(),
+            )
+        )
+        st.session_state.localities_centroids_dict = localities_centroids
+    else:
+        localities_geometry_gpd = st.session_state.localities_geometry_gpd
+        localities_centroids = st.session_state.localities_centroids_dict
+
     relevant_columns = [
         "LOCALIDAD",
         "GRAVEDAD",
@@ -172,6 +193,22 @@ def contingency_heatmap(df: pd.DataFrame) -> None:
             index=0,
         )
         col_alias2 = selected_col2.replace("_", " ")
+
+    # Sort localities by latitude if LOCALIDAD is involved
+    if "LOCALIDAD" in [selected_col1, selected_col2]:
+        # Create a sorted list of localities based on latitude
+        sorted_localities = sorted(
+            df["LOCALIDAD"].unique(),
+            key=lambda loc: localities_centroids[loc][1],  # sort by latitude
+            reverse=True,  # from north to south
+        )
+
+        # Convert LOCALIDAD column to categorical with the sorted order
+        df["LOCALIDAD"] = pd.Categorical(
+            df["LOCALIDAD"],
+            categories=sorted_localities,
+            ordered=True,
+        )
 
     contingency_table = pd.crosstab(
         df[selected_col1],
@@ -326,22 +363,37 @@ def correlation_heatmap(
     """)
 
     # ==============================
+    st.markdown("---")
 
-    st.markdown("### MST applied to LOCALIDAD distance matrix")
+    st.markdown("### 🕸️ Análisis de Red: Árbol de Expansión Mínima (MST)")
 
-    st.markdown("""
-        La matriz de distancia se calculó de esta manera:
-                
-        $$
-        D_{i, j} = \sqrt{2(1 - C_{i, j})}
-        $$
+    st.info("""
+        **Guía de Interpretación:**
+        Este mapa conecta las localidades basándose en su similitud estadística, no geográfica.
+        * **Líneas Azules:** Representan la conexión más fuerte (menor distancia estadística) entre zonas.
+        * **Fórmula de Distancia:** $D_{i, j} = \sqrt{2(1 - C_{i, j})}$ (Alta correlación = Distancia corta).
     """)
 
     if st.session_state.localities_geometry_gpd is None:
         localities_geometry_gpd = load_locality_geopoints()
         st.session_state.localities_geometry_gpd = localities_geometry_gpd
+
+        localities_centroids = (
+            localities_geometry_gpd[["LOCALIDAD", "centroid"]]
+            .set_index("LOCALIDAD")
+            .to_dict()["centroid"]
+        )
+
+        localities_centroids = dict(
+            map(
+                lambda item: (item[0], (item[1].xy[0][0], item[1].xy[1][0])),
+                localities_centroids.items(),
+            )
+        )
+        st.session_state.localities_centroids_dict = localities_centroids
     else:
         localities_geometry_gpd = st.session_state.localities_geometry_gpd
+        localities_centroids = st.session_state.localities_centroids_dict
 
     # Create a cache key based on the correlation matrix
     cache_key = hash(corr_matrix.values.tobytes())
@@ -387,6 +439,26 @@ def correlation_heatmap(
     )
 
     st_folium(folium_map, width=700, height=500, returned_objects=[])
+
+    st.markdown("""
+        ### 🔍 Hallazgos Estructurales en el MST
+        
+        El análisis de la red revela una estructura oculta en la accidentalidad de la ciudad, especialmente visible en patrones semanales:
+
+        1.  **División Centro-Norte (Oriental vs. Occidental):**
+            * Existe una clara separación funcional. El grupo **Oriental** tiende a orbitar alrededor de la dinámica de **Chapinero**, mientras que el grupo **Occidental** es influenciado fuertemente por **Kennedy**.
+            * **El "Puente":** La localidad de **Puente Aranda** actúa como el nodo conector clave (*high betweenness*) entre estos dos grandes bloques, uniendo la dinámica del oriente con la del occidente.
+
+        2.  **Dinámica del Sur:**
+            * Hacia el sur, la división este-oeste desaparece. Las localidades desde Antonio Nariño hacia el sur muestran una fuerte cohesión, correlacionándose principalmente con **Kennedy** y **Ciudad Bolívar**.
+            * Destaca la fuerte vinculación entre Kennedy y Ciudad Bolívar (correlación de **0.62** en frecuencia semanal), sugiriendo un eje de accidentalidad crítico en el suroccidente.
+
+        > ⚠️ **Nota sobre la Frecuencia de Muestreo:**
+        > La claridad de esta estructura depende de la ventana de tiempo elegida:
+        > * **Recomendado:** Frecuencias **Semanal, Quincenal o Mensual**. Estas permiten ver claramente la estructura y los roles de Chapinero y Kennedy.
+        > * **Diario:** No recomendado. El "ruido" es excesivo y las correlaciones son demasiado bajas para formar grupos coherentes.
+        > * **> 4 Meses:** La estructura se difumina; aunque Kennedy mantiene su influencia en el occidente, la centralidad de Chapinero en el oriente se diluye y se distribuye entre otras localidades.
+    """)
 
     # ==============================
 
@@ -512,7 +584,19 @@ def load_data() -> LoadDataResult | None:
 
 
 def index(title: str = "Correlation between variables") -> None:
-    st.markdown(f"## {title}")
+    st.markdown(f"# {title}")
+
+    st.markdown("""
+        ## Entendiendo las Conexiones
+
+        Más allá de la frecuencia y la ubicación, es fundamental entender cómo interactúan las distintas variables del ecosistema vial. Esta sección utiliza técnicas estadísticas y de teoría de grafos para revelar la estructura oculta de los datos.
+
+        ### ¿Qué encontrará en esta sección?
+
+        * **Sincronización entre Localidades:** A través de matrices de correlación, analizamos si los picos de accidentalidad en una zona (ej. Kennedy) ocurren simultáneamente en otras (ej. Bosa), lo que indicaría causas sistémicas compartidas.
+        * **Topología de la Accidentalidad (MST):** Un mapa interactivo que conecta las localidades no por su cercanía física, sino por su similitud estadística, revelando "clústeres" de comportamiento.
+        * **Relaciones Categóricas:** Mapas de calor de contingencia para cruzar variables cualitativas (ej. *Gravedad vs. Clase*) y determinar qué combinaciones son las más frecuentes o peligrosas.
+    """)
 
     # Initialize session state
     if "localities_geometry_gpd" not in st.session_state:
@@ -549,7 +633,7 @@ def index(title: str = "Correlation between variables") -> None:
     st.markdown("---")
 
     st.markdown("""
-        ### Conclusiones
+        ## Conclusiones
 
         Los choques se asocian fuertemente con los accidentes de solo daños, mientras que los atropellos, volcamientos y caídas de ocupante están más vinculados con la ocurrencia de heridos. La severidad varía territorialmente, aunque la mayoría de localidades mantienen altos porcentajes de incidentes sin lesiones; zonas como Usme, Bosa y San Cristóbal reflejan mayores proporciones de accidentes con heridos o con clases más riesgosas. Además, la distribución por días de la semana evidencia incrementos claros durante viernes y sábado y una alta variabilidad los domingos. Estos patrones revelan diferencias significativas en el comportamiento de los accidentes según el contexto espacial y temporal de cada localidad.
 
@@ -558,6 +642,6 @@ def index(title: str = "Correlation between variables") -> None:
 
 
 if __name__ == "__main__":
-    title = "Correlation Analysis"
+    title = "🔗 Análisis de Correlación y Dependencias"
     st.set_page_config(page_title=title, layout="centered")
     index(title)

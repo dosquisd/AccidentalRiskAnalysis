@@ -252,6 +252,17 @@ def show_distrubution_over_time(
         ascending_order=ascending_order,
     )
 
+    st.markdown("""
+        ### 🔎 Interpretación de la Distribución
+
+        El análisis estadístico revela patrones estructurales dependiendo de la métrica seleccionada:
+
+        * **Por CLASE:** La categoría **"Choque"** domina de manera clara y consistente, con una mediana y rango mucho mayores al resto. Esto indica que es la problemática estructural principal. "Atropello" ocupa un segundo lugar distante. La distribución es altamente asimétrica: unas pocas clases explican la mayor parte de la accidentalidad.
+        * **Por DÍA DE SEMANA:** Se observa un patrón cíclico claro. Los accidentes aumentan progresivamente desde el lunes, alcanzando su pico máximo entre **viernes y sábado**. El domingo presenta una caída marcada, asociada a la disminución de la movilidad laboral.
+        * **Por GRAVEDAD:** Predominan los eventos de "Solo Daños". Sin embargo, los accidentes con **heridos y muertos** muestran alta persistencia y aumentan proporcionalmente los fines de semana, evidenciando que menor tráfico (domingos) no implica menor riesgo de severidad.
+        * **Por LOCALIDAD:** La distribución es estructuralmente desigual. Localidades como **Kennedy, Engativá y Suba** concentran consistentemente la mayor cantidad de eventos (medianas altas), mientras que zonas como La Candelaria se mantienen en niveles bajos.
+    """)
+
 
 def compare_boxplots_between_hours(
     df: pd.DataFrame,
@@ -309,12 +320,28 @@ def compare_boxplots_between_hours(
         ascending_order=ascending_order,
     )
 
+    st.markdown("""
+        ### ⏰ Análisis Horario
+
+        Al cruzar las variables con la hora del día, surgen patrones de comportamiento vinculados a la actividad ciudadana:
+
+        * **Concentración Diurna:** La mayoría de las clases de accidentes (especialmente choques y atropellos) se concentran entre las **9:00 a.m. y las 6:00 p.m.**, coincidiendo con los flujos de movilidad laboral y escolar.
+        * **Riesgo Nocturno (Fatalidad):** Existe una excepción crítica en la gravedad. Mientras que los heridos tienen un comportamiento bimodal (picos mañana/tarde), los **accidentes fatales** tienden a concentrarse en horarios nocturnos (**10:00 p.m. a 3:00 a.m.**), lo que sugiere factores de riesgo distintos como velocidad o conducción bajo efectos del alcohol.
+    """)
+
 
 def index(title: str = "Distribution over time") -> None:
     st.markdown(f"# {title}")
-    st.warning("""
-        TODO: :red[Write about the box plots that will be shown here. Explain what they represent,
-        the data source, and any relevant information for the user to understand the visualizations.]
+    st.markdown("""
+        ## 📊 Análisis de Distribución y Variabilidad
+
+        ### ¿Qué nos dicen los diagramas de caja?
+
+        Esta sección profundiza en la **estadística descriptiva** de los accidentes. A diferencia de los gráficos de línea que muestran tendencias, los **Boxplots (Diagramas de Caja)** nos permiten entender:
+        
+        1.  **Centralidad:** ¿Cuál es el número mediano de accidentes?
+        2.  **Dispersión:** ¿Qué tanta variabilidad existe (días tranquilos vs. días caóticos)?
+        3.  **Valores Atípicos (Outliers):** Detección de eventos extremos que se salen de la norma estadística.
     """)
 
     # Initialize session state
