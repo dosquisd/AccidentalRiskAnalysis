@@ -253,7 +253,7 @@ def show_distrubution_over_time(
     )
 
     st.markdown("""
-        ### 🔎 Interpretación de la Distribución
+        ## 🔎 Interpretación de la Distribución
 
         El análisis estadístico revela patrones estructurales dependiendo de la métrica seleccionada:
 
@@ -321,7 +321,7 @@ def compare_boxplots_between_hours(
     )
 
     st.markdown("""
-        ### ⏰ Análisis Horario
+        ## ⏰ Análisis Horario
 
         Al cruzar las variables con la hora del día, surgen patrones de comportamiento vinculados a la actividad ciudadana:
 
@@ -333,9 +333,7 @@ def compare_boxplots_between_hours(
 def index(title: str = "Distribution over time") -> None:
     st.markdown(f"# {title}")
     st.markdown("""
-        ## 📊 Análisis de Distribución y Variabilidad
-
-        ### ¿Qué nos dicen los diagramas de caja?
+        ## ¿Qué nos dicen los diagramas de caja?
 
         Esta sección profundiza en la **estadística descriptiva** de los accidentes. A diferencia de los gráficos de línea que muestran tendencias, los **Boxplots (Diagramas de Caja)** nos permiten entender:
         
@@ -384,6 +382,6 @@ def index(title: str = "Distribution over time") -> None:
 
 
 if __name__ == "__main__":
-    title = "Distribution over time"
+    title = "📦 Análisis de Distribución y Variabilidad"
     st.set_page_config(page_title=title, layout="centered")
     index(title=title)

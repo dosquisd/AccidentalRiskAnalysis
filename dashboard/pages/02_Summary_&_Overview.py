@@ -325,6 +325,6 @@ def index(title: str = "Summary") -> None:
 
 
 if __name__ == "__main__":
-    title = "Summary & Overview"
-    st.set_page_config(page_title=title, page_icon="📊", layout="wide")
+    title = "🏙️ Panorama General"
+    st.set_page_config(page_title=title, layout="wide")
     index(title)
